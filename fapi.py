@@ -1,7 +1,8 @@
 import os
 import tempfile
+import traceback
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from ultralytics import YOLO
 from PIL import Image, ImageDraw
 import numpy as np
@@ -31,6 +32,18 @@ async def upload_image(file: UploadFile = File(...)):
         file.file.seek(0)
         image = Image.open(file.file)
 
+        # Check image format
+        if image.format not in ["JPEG", "PNG"]:
+            raise HTTPException(status_code=400, detail="Unsupported image format.")
+
+        # Check image size
+        # if image.size[0] > 2000 or image.size[1] > 2000:
+        #     raise HTTPException(status_code=400, detail="Image is too large.")
+
+        # Check color channels
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+
         # Convert PIL image to numpy array
         image_np = np.array(image)
 
@@ -42,7 +55,7 @@ async def upload_image(file: UploadFile = File(...)):
 
         # Check if there are no bounding boxes
         if len(boxes) == 0:
-            raise HTTPException(status_code=400, detail="No objects detected in the image.")
+            raise HTTPException(status_code=500, detail="No objects detected in the image.")
 
         # Draw bounding boxes on the image
         image_with_boxes = draw_boxes(image, boxes)
@@ -55,16 +68,14 @@ async def upload_image(file: UploadFile = File(...)):
         # Serve the file
         return FileResponse(temp_file.name, media_type="image/jpeg", filename="image_with_boxes.jpg")
 
+    except HTTPException as e:
+        print(f"HTTPException: {e.detail}")
+        traceback.print_exc()
+        return JSONResponse(status_code=e.status_code, content={"message": str(e.detail)})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        # Clean up the temporary file after response is sent
-        @app.on_event("shutdown")
-        def remove_temp_file():
-            try:
-                os.remove(temp_file.name)
-            except Exception:
-                pass
+        print(f"Exception: {e}")
+        traceback.print_exc()
+        return JSONResponse(status_code=e.status_code, content={"message": str(e)})
 
 if __name__ == "__main__":
     import uvicorn
