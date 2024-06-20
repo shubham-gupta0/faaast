@@ -34,7 +34,7 @@ async def upload_image(file: UploadFile = File(...)):
         image_np = np.array(image)
 
         # Perform inference
-        results = model(image_np, conf=0.5, imgsz=640, iou=0.25)
+        results = model(image_np, conf=0.8, imgsz=640, iou=0.1)
         
         # Process results
         boxes = results[0].boxes.xyxy  # Bounding boxes
