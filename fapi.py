@@ -28,6 +28,7 @@ async def hello_world():
 async def upload_image(file: UploadFile = File(...)):
     try:
         # Read the image file
+        file.file.seek(0)
         image = Image.open(file.file)
 
         # Convert PIL image to numpy array
