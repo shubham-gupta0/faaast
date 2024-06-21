@@ -25,7 +25,7 @@ async def hello_world():
     return {"message": "Hello, World!"}
 
 @app.post("/upload")
-async def upload_image(file: UploadFile = File(...)):
+def upload_image(file: UploadFile = File(...)):
     try:
         # Read the image file
         image = Image.open(file.file)
