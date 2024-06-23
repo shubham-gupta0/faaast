@@ -2,7 +2,9 @@ import tempfile
 from flask import Flask, jsonify, render_template, request, redirect, session, flash, send_file
 import numpy as np
 from PIL import Image, ImageDraw
-
+from ultralytics import YOLO
+model_path = "best.pt"
+model = YOLO(model_path, task="detect")
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Load your YOLO model (adjust the path as needed)
@@ -28,8 +30,6 @@ def upload():
         # Convert PIL image to numpy array
         image_np = np.array(image)
         # Perform inference
-        model_path = "best.pt"
-        model = YOLO(model_path, task="detect")
         results = model(image_np, conf=0.5, imgsz=640, iou=0.25)
         # Process results
         boxes = results[0].boxes.xyxy  # Bounding boxes
