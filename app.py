@@ -39,16 +39,13 @@ def upload():
         # Draw bounding boxes on the image
         image_with_boxes = draw_boxes(image, boxes)
         # Save the image with bounding boxes to a temporary file
-        temp_file = tempfile.NamedTemporaryFile(delete=True, suffix=".jpg")
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
         image_with_boxes.save(temp_file, format="JPEG")
+        temp_file.close()
         # Serve the file
         return send_file(temp_file.name, as_attachment=True, attachment_filename="image_with_boxes.jpg", mimetype="image/jpeg")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        # Clean up the temporary file after response is sent
-        temp_file.close()
-
 
 
 if __name__ == '__main__':
