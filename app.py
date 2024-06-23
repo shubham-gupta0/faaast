@@ -24,8 +24,9 @@ def index():
 @app.route("/upload", methods=["POST"])
 def upload():
     try:
-        from ultralytics import YOLO
         # Read the image file
+        if "file" not in request.files:
+            return jsonify({"error": "No file part"}), 400
         image = Image.open(request.files["file"])
         # Convert PIL image to numpy array
         image_np = np.array(image)
